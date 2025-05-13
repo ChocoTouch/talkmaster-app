@@ -1,0 +1,17 @@
+{
+  "name": "talkmaster-app",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3"
+  },
+  "eslintConfig": {
+    "extends": "./frontend/eslint.config.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

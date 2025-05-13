@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Lint and format JavaScript/TypeScript files for frontend
+npx eslint frontend --ext .js,.jsx,.ts,.tsx && npx prettier --write frontend/
+
+# Lint and format Python files in the backend
+cd backend && ruff check . && black .
