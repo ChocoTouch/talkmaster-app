@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-py"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum NomRole {
+  CONFERENCIER
+  ORGANISATEUR
+  PUBLIC
+}
+
+enum Niveau {
+  DEBUTANT
+  INTERMEDIAIRE
+  AVANCE
+}
+
+enum StatutTalk {
+  EN_ATTENTE
+  ACCEPTE
+  REFUSE
+  PLANIFIE
+}
+
+model Utilisateur {
+  id_utilisateur Int       @id @default(autoincrement())
+  nom            String
+  email          String    @unique
+  mot_de_passe   String
+  id_role        Int
+  role           Role      @relation(fields: [id_role], references: [id_role])
+  talks          Talk[]    @relation("ConférencierTalks")   // Relation avec les talks en tant que conférencier
+  favoris        Favori[]  // Relation pour les favoris
+  feedbacks      Feedback[]  // Relation pour les feedbacks
+  plannings      Planning[]  // Relation pour les plannings créés par l'organisateur
+}
+
+model Role {
+  id_role  Int       @id @default(autoincrement())
+  nom_role NomRole
+  utilisateurs Utilisateur[]  // 1 rôle peut être attribué à plusieurs utilisateurs
+}
+
+model Talk {
+  id_talk        Int        @id @default(autoincrement())
+  titre          String
+  description    String
+  duree          Int        
+  niveau         Niveau
+  sujet          String
+  statut         StatutTalk
+  id_conferencier Int
+  conferencier   Utilisateur @relation("ConférencierTalks", fields: [id_conferencier], references: [id_utilisateur])
+  favoris        Favori[]    // Relation avec les favoris
+  feedbacks      Feedback[]  // Relation avec les feedbacks
+  planning       Planning?   // Relation avec le planning (1:1)
+}
+
+model Salle {
+  id_salle   Int        @id @default(autoincrement())
+  nom_salle  String
+  capacite   Int
+  plannings  Planning[] // Relation avec les plannings dans cette salle
+}
+
+model Planning {
+  id_planning     Int        @id @default(autoincrement())
+  date_heure      DateTime
+  id_talk         Int        @unique 
+  id_salle        Int
+  id_organisateur Int
+  talk            Talk       @relation(fields: [id_talk], references: [id_talk])
+  salle           Salle      @relation(fields: [id_salle], references: [id_salle])
+  organisateur    Utilisateur @relation(fields: [id_organisateur], references: [id_utilisateur])
+}
+
+model Favori {
+  id_favori     Int        @id @default(autoincrement())
+  id_utilisateur Int
+  id_talk        Int
+  utilisateur   Utilisateur @relation(fields: [id_utilisateur], references: [id_utilisateur])
+  talk          Talk       @relation(fields: [id_talk], references: [id_talk])
+  @@unique([id_utilisateur, id_talk]) // Garantie d'unicité : Un utilisateur ne peut avoir qu'une fois le même talk en favori
+}
+
+model Feedback {
+  id_feedback   Int        @id @default(autoincrement())
+  id_utilisateur Int
+  id_talk        Int
+  commentaire   String
+  note          Int
+  date_feedback DateTime
+  utilisateur   Utilisateur @relation(fields: [id_utilisateur], references: [id_utilisateur])
+  talk          Talk       @relation(fields: [id_talk], references: [id_talk])
+  @@unique([id_utilisateur, id_talk]) // Garantie d'unicité : Un utilisateur ne peut donner qu'un seul feedback par talk
+}
