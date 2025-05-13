@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from datetime import date, time
 from uuid import UUID
 
+
 class PlanningBase(BaseModel):
     salle_id: UUID
     date: date
@@ -9,6 +10,7 @@ class PlanningBase(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 # Modèle de sortie pour afficher un planning
 class PlanningOut(PlanningBase):
@@ -20,6 +22,7 @@ class PlanningOut(PlanningBase):
 
     class Config:
         from_attributes = True
+
 
 # Modèle de mise à jour pour un planning
 class PlanningUpdate(BaseModel):

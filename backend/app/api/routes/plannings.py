@@ -1,14 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status,Query
-from prisma.models import Planning, Talk, Salle
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from app.deps.auth import get_current_user
 from app.db import prisma
 from app.models.planning import PlanningOut, PlanningUpdate
-from typing import List,Optional
+from typing import List, Optional
 from uuid import UUID
 from datetime import date
 
 
 router = APIRouter()
+
 
 @router.get("/", response_model=List[PlanningOut])
 async def get_planning(current_user=Depends(get_current_user)):
@@ -31,11 +31,7 @@ async def get_planning(current_user=Depends(get_current_user)):
                     "statut": True,
                 }
             },
-            "salle": {
-                "select": {
-                    "nom_salle": True
-                }
-            }
+            "salle": {"select": {"nom_salle": True}},
         }
     )
 
@@ -44,8 +40,11 @@ async def get_planning(current_user=Depends(get_current_user)):
 
     return plannings
 
+
 @router.put("/{id}", response_model=PlanningOut)
-async def update_planning(id: int, planning_update: PlanningUpdate, current_user=Depends(get_current_user)):
+async def update_planning(
+    id: int, planning_update: PlanningUpdate, current_user=Depends(get_current_user)
+):
     """
     Permet à un organisateur de modifier une entrée du planning existant.
     Vérifie qu'il n'y a pas de conflit de planning (salle ou créneau).
@@ -54,7 +53,7 @@ async def update_planning(id: int, planning_update: PlanningUpdate, current_user
     if current_user.role.nom_role != "ORGANISATEUR":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Vous devez être un organisateur pour modifier un planning."
+            detail="Vous devez être un organisateur pour modifier un planning.",
         )
 
     # Vérifier si le planning existe
@@ -63,7 +62,7 @@ async def update_planning(id: int, planning_update: PlanningUpdate, current_user
         include={
             "talk": True,  # Inclure le talk associé pour vérification
             "salle": True,  # Inclure la salle actuelle
-        }
+        },
     )
 
     if not planning:
@@ -75,12 +74,14 @@ async def update_planning(id: int, planning_update: PlanningUpdate, current_user
             "salle_id": planning_update.salle_id,
             "date": planning_update.date,
             "heure": planning_update.heure,
-            "id_planning_not": id  # On exclut le planning actuel
+            "id_planning_not": id,  # On exclut le planning actuel
         }
     )
 
     if conflicting_planning:
-        raise HTTPException(status_code=400, detail="Le créneau ou la salle est déjà occupé.")
+        raise HTTPException(
+            status_code=400, detail="Le créneau ou la salle est déjà occupé."
+        )
 
     # Mettre à jour les informations du planning dans la base de données
     updated_planning = await prisma.planning.update(
@@ -89,7 +90,7 @@ async def update_planning(id: int, planning_update: PlanningUpdate, current_user
             "salle_id": planning_update.salle_id,
             "date": planning_update.date,
             "heure": planning_update.heure,
-        }
+        },
     )
 
     # Récupérer les informations actualisées pour la réponse
@@ -98,10 +99,11 @@ async def update_planning(id: int, planning_update: PlanningUpdate, current_user
         include={
             "talk": True,
             "salle": True,
-        }
+        },
     )
 
     return updated_planning
+
 
 @router.get("/planning", response_model=List[PlanningOut])
 async def get_filtered_planning(
@@ -109,7 +111,7 @@ async def get_filtered_planning(
     salle: Optional[UUID] = Query(None),
     sujet: Optional[str] = Query(None),
     niveau: Optional[str] = Query(None),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """
     Récupère les talks planifiés avec filtres dynamiques : jour, salle, sujet, niveau.
@@ -145,15 +147,11 @@ async def get_filtered_planning(
                     "titre": True,
                     "description": True,
                     "statut": True,
-                    "niveau": True
+                    "niveau": True,
                 }
             },
-            "salle": {
-                "select": {
-                    "nom_salle": True
-                }
-            }
-        }
+            "salle": {"select": {"nom_salle": True}},
+        },
     )
 
     return plannings

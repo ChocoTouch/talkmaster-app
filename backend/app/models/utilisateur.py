@@ -14,13 +14,6 @@ class UtilisateurCreate(UtilisateurBase):
 class UtilisateurOut(UtilisateurBase):
     id_utilisateur: int
     id_role: int
-
-    class Config:
-        from_attributes = True
-
-class UtilisateurOut(BaseModel):
-    id_utilisateur: int
-    nom: str
     email: EmailStr
 
     class Config:

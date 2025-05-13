@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from prisma.models import Utilisateur, Talk
+from prisma.models import Utilisateur
 from app.deps.auth import get_current_user
 from app.db import prisma
-from app.models.talk import TalkCreate,TalkOut,TalkUpdate,StatutTalk,Niveau
-from typing import Annotated,List,Optional
+from app.models.talk import TalkCreate, TalkOut, TalkUpdate, StatutTalk, Niveau
+from typing import Annotated, List, Optional
 from datetime import datetime
 from uuid import UUID
 
 router = APIRouter()
+
 
 @router.get("/me", response_model=List[TalkOut])
 async def get_my_talks(current_user: Utilisateur = Depends(get_current_user)):
@@ -15,15 +16,19 @@ async def get_my_talks(current_user: Utilisateur = Depends(get_current_user)):
     Récupère la liste des talks soumis par le conférencier connecté.
     """
     # Vérifie que l'utilisateur est un conférencier
-    if current_user.role.nom_role != 'CONFERENCIER':
-        raise HTTPException(status_code=403, detail="Seuls les conférenciers peuvent consulter leurs talks.")
+    if current_user.role.nom_role != "CONFERENCIER":
+        raise HTTPException(
+            status_code=403,
+            detail="Seuls les conférenciers peuvent consulter leurs talks.",
+        )
 
     talks = await prisma.talk.find_many(
         where={"id_conferencier": current_user.id_utilisateur},
-        include={"conferencier": True}
+        include={"conferencier": True},
     )
 
     return talks
+
 
 @router.get("/", response_model=List[TalkOut])
 async def list_talks(
@@ -33,7 +38,7 @@ async def list_talks(
     duree_max: Optional[int] = Query(None),
     skip: int = 0,
     limit: int = 10,
-    current_user: Utilisateur = Depends(get_current_user)
+    current_user: Utilisateur = Depends(get_current_user),
 ):
     """
     Liste paginée des talks avec filtres pour les organisateurs uniquement.
@@ -41,7 +46,7 @@ async def list_talks(
     if current_user.role.nom_role != "ORGANISATEUR":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Accès réservé aux organisateurs."
+            detail="Accès réservé aux organisateurs.",
         )
 
     filters = {}
@@ -55,20 +60,20 @@ async def list_talks(
     if duree_min is not None or duree_max is not None:
         filters["duree"] = {
             "gte": duree_min if duree_min is not None else 0,
-            "lte": duree_max if duree_max is not None else 1000
+            "lte": duree_max if duree_max is not None else 1000,
         }
 
     talks = await prisma.talk.find_many(
-        where=filters,
-        skip=skip,
-        take=limit,
-        include={"conferencier": True}
+        where=filters, skip=skip, take=limit, include={"conferencier": True}
     )
 
     return talks
 
+
 @router.post("/", response_model=TalkOut, status_code=status.HTTP_201_CREATED)
-async def create_talk(talk: TalkCreate, current_user: Utilisateur = Depends(get_current_user)):
+async def create_talk(
+    talk: TalkCreate, current_user: Utilisateur = Depends(get_current_user)
+):
     ...
     new_talk = await prisma.talk.create(
         data={
@@ -83,11 +88,12 @@ async def create_talk(talk: TalkCreate, current_user: Utilisateur = Depends(get_
     )
     return new_talk
 
+
 @router.put("/{id}", response_model=TalkOut)
 async def update_talk(
     id: int,
     talk_data: TalkUpdate,
-    current_user: Utilisateur = Depends(get_current_user)
+    current_user: Utilisateur = Depends(get_current_user),
 ):
     """
     Permet à un conférencier de modifier un talk en statut EN_ATTENTE.
@@ -116,19 +122,25 @@ async def update_talk(
             "duree": talk_data.duree,
             "niveau": talk_data.niveau,
         },
-        include={"conferencier": True}
+        include={"conferencier": True},
     )
 
     return updated_talk
 
+
 @router.patch("/{id}/status", response_model=TalkOut)
-async def update_talk_status(id: int, status: StatutTalk, current_user: Utilisateur = Depends(get_current_user)):
+async def update_talk_status(
+    id: int, status: StatutTalk, current_user: Utilisateur = Depends(get_current_user)
+):
     """
     Permet à un organisateur de mettre à jour le statut d'un talk (accepter ou refuser).
     """
     # Vérifie si l'utilisateur est un organisateur
-    if current_user.role.nom_role != 'ORGANISATEUR':
-        raise HTTPException(status_code=403, detail="Seuls les organisateurs peuvent gérer les statuts des talks.")
+    if current_user.role.nom_role != "ORGANISATEUR":
+        raise HTTPException(
+            status_code=403,
+            detail="Seuls les organisateurs peuvent gérer les statuts des talks.",
+        )
 
     # Vérifie si le talk existe
     talk = await prisma.talk.find_unique(where={"id_talk": id})
@@ -137,28 +149,40 @@ async def update_talk_status(id: int, status: StatutTalk, current_user: Utilisat
 
     # Met à jour le statut du talk
     updated_talk = await prisma.talk.update(
-        where={"id_talk": id},
-        data={"statut": status}  # Met à jour le statut du talk
+        where={"id_talk": id}, data={"statut": status}  # Met à jour le statut du talk
     )
 
     return updated_talk
 
+
 @router.patch("/{id}/schedule", response_model=TalkOut)
-async def schedule_talk(id: int, salle_id: UUID, date: str, heure: str, current_user: Utilisateur = Depends(get_current_user)):
+async def schedule_talk(
+    id: int,
+    salle_id: UUID,
+    date: str,
+    heure: str,
+    current_user: Utilisateur = Depends(get_current_user),
+):
     """
     Permet à un organisateur d'assigner une salle et un créneau horaire à un talk déjà accepté.
     """
     # Vérifie si l'utilisateur est un organisateur
-    if current_user.role.nom_role != 'ORGANISATEUR':
-        raise HTTPException(status_code=403, detail="Seuls les organisateurs peuvent assigner des salles et des créneaux.")
+    if current_user.role.nom_role != "ORGANISATEUR":
+        raise HTTPException(
+            status_code=403,
+            detail="Seuls les organisateurs peuvent assigner des salles et des créneaux.",
+        )
 
     # Vérifie si le talk existe et est accepté
     talk = await prisma.talk.find_unique(where={"id_talk": id})
     if not talk:
         raise HTTPException(status_code=404, detail="Talk non trouvé")
-    
+
     if talk.statut != "ACCEPTE":
-        raise HTTPException(status_code=400, detail="Le talk n'est pas accepté, impossible d'assigner une salle.")
+        raise HTTPException(
+            status_code=400,
+            detail="Le talk n'est pas accepté, impossible d'assigner une salle.",
+        )
 
     # Convertir la date et l'heure en un datetime pour validation
     try:
@@ -171,12 +195,14 @@ async def schedule_talk(id: int, salle_id: UUID, date: str, heure: str, current_
         where={
             "salle_id": salle_id,
             "date": date_heure.date(),
-            "heure": date_heure.time()
+            "heure": date_heure.time(),
         }
     )
-    
+
     if conflict:
-        raise HTTPException(status_code=400, detail="La salle est déjà réservée pour ce créneau.")
+        raise HTTPException(
+            status_code=400, detail="La salle est déjà réservée pour ce créneau."
+        )
 
     # Met à jour le talk avec la salle et le créneau horaire
     updated_talk = await prisma.talk.update(
@@ -185,14 +211,17 @@ async def schedule_talk(id: int, salle_id: UUID, date: str, heure: str, current_
             "salle_id": salle_id,
             "date": date_heure.date(),
             "heure": date_heure.time(),
-            "statut": "PLANIFIE"  # Le statut est maintenant "planifié" après l'assignation
-        }
+            "statut": "PLANIFIE",  # Le statut est maintenant "planifié" après l'assignation
+        },
     )
 
     return updated_talk
 
+
 @router.delete("/{id}", status_code=204)
-async def delete_talk(id: int, current_user: Annotated[Utilisateur, Depends(get_current_user)]):
+async def delete_talk(
+    id: int, current_user: Annotated[Utilisateur, Depends(get_current_user)]
+):
     """
     Supprimer un talk si l'utilisateur est conférencier et que le talk n'est pas planifié.
     """
@@ -205,7 +234,10 @@ async def delete_talk(id: int, current_user: Annotated[Utilisateur, Depends(get_
         raise HTTPException(status_code=403, detail="Action non autorisée")
 
     if talk.statut == "PLANIFIE":
-        raise HTTPException(status_code=400, detail="Le talk est déjà planifié et ne peut pas être supprimé")
+        raise HTTPException(
+            status_code=400,
+            detail="Le talk est déjà planifié et ne peut pas être supprimé",
+        )
 
     await prisma.talk.delete(where={"id_talk": id})
     return None  # 204 No Content

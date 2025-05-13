@@ -4,6 +4,7 @@ from app.core.prisma import prisma
 
 router = APIRouter()
 
+
 @router.post("/", response_model=UtilisateurOut, status_code=status.HTTP_201_CREATED)
 async def creer_utilisateur(utilisateur: UtilisateurCreate):
     existing = await prisma.utilisateur.find_unique(where={"email": utilisateur.email})

@@ -9,11 +9,13 @@ class Niveau(str, Enum):
     INTERMEDIAIRE = "INTERMEDIAIRE"
     AVANCE = "AVANCE"
 
+
 class StatutTalk(str, Enum):
     EN_ATTENTE = "EN_ATTENTE"
     ACCEPTE = "ACCEPTE"
     REFUSE = "REFUSE"
     PLANIFIE = "PLANIFIE"
+
 
 class TalkCreate(BaseModel):
     titre: str
@@ -26,6 +28,7 @@ class TalkCreate(BaseModel):
     class Config:
         from_attributes = True
 
+
 class TalkUpdate(BaseModel):
     titre: str
     sujet: str
@@ -36,6 +39,7 @@ class TalkUpdate(BaseModel):
     class Config:
         from_attributes = True
 
+
 class TalkOut(TalkCreate):
     id_talk: int
     id_conferencier: int
@@ -43,4 +47,3 @@ class TalkOut(TalkCreate):
 
     class Config:
         from_attributes = True
-
