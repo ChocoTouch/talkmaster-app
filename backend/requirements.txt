@@ -1,7 +1,6 @@
 fastapi
-uvicorn[standard]
+uvicorn
 python-dotenv
-pydantic
-httpx
+jose
+passlib
 prisma
-psycopg2-binary

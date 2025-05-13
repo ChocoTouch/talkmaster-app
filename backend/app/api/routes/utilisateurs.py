@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from app.db.utilisateur import UtilisateurCreate, UtilisateurOut
+from app.models.utilisateur import UtilisateurCreate, UtilisateurOut
 from app.core.prisma import prisma
 
 router = APIRouter()
@@ -15,10 +15,11 @@ async def creer_utilisateur(utilisateur: UtilisateurCreate):
             "nom": utilisateur.nom,
             "email": utilisateur.email,
             "mot_de_passe": utilisateur.mot_de_passe,
-            "id_role": utilisateur.id_role
+            "id_role": utilisateur.id_role,
         }
     )
     return new_user
+
 
 @router.get("/", response_model=list[UtilisateurOut])
 async def liste_utilisateurs():
