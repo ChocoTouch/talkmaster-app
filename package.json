@@ -10,7 +10,7 @@
     "husky": "^8.0.3"
   },
   "eslintConfig": {
-    "extends": "./frontend/eslint.config.mjs"
+    "extends": "./frontend/eslint.config.js"
   },
   "keywords": [],
   "author": "",
