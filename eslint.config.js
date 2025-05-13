@@ -11,8 +11,20 @@ import tsPlugin from "@typescript-eslint/eslint-plugin";
 export default defineConfig([
   { files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"], plugins: { js }, extends: ["js/recommended"] },
   { files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"], languageOptions: { globals: {...globals.browser, ...globals.node} } },
-  { files: ["**/*.ts", "**/*.tsx"], parser: tsParser, plugins: { ts: tsPlugin }, extends: ["plugin:@typescript-eslint/recommended"] },
-  pluginReact.configs.flat.recommended,
+  {
+  files: ["**/*.{ts,tsx}"],
+  languageOptions: {
+    parser: tseslintParser,
+    parserOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+    },
+  },
+  plugins: {
+    "@typescript-eslint": tseslint,
+  },
+  rules: tseslint.configs.recommended.rules,
+},
   { files: ["**/*.json"], plugins: { json }, language: "json/json", extends: ["json/recommended"] },
   { files: ["**/*.jsonc"], plugins: { json }, language: "json/jsonc", extends: ["json/recommended"] },
   { files: ["**/*.json5"], plugins: { json }, language: "json/json5", extends: ["json/recommended"] },
