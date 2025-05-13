@@ -1,12 +1,11 @@
 import js from "@eslint/js";
 import globals from "globals";
-import tsParser from "@typescript-eslint/parser"; 
-import pluginReact from "eslint-plugin-react";
+import * as tseslint from "@typescript-eslint/eslint-plugin";
+import tseslintParser from "@typescript-eslint/parser";
 import json from "@eslint/json";
 import markdown from "@eslint/markdown";
 import css from "@eslint/css";
 import { defineConfig } from "eslint/config";
-import tsPlugin from "@typescript-eslint/eslint-plugin"; 
 
 export default defineConfig([
   { files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"], plugins: { js }, extends: ["js/recommended"] },
