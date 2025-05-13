@@ -9,7 +9,12 @@ import { defineConfig } from "eslint/config";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
 
-export default defineConfig([
+export default defineConfig({
+  ignores: [
+    "package-lock.json",
+    "frontend/package-lock.json",
+  ],
+  configs:[
   {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
     languageOptions: {
@@ -59,4 +64,4 @@ export default defineConfig([
     language: "css/css",
     extends: ["css/recommended"],
   },
-]);
+]});
