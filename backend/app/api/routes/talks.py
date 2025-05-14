@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from prisma.models import Utilisateur
 from app.deps.auth import get_current_user
-from app.db import prisma
+from app.core.prisma import prisma
 from app.models.talk import TalkCreate, TalkOut, TalkUpdate, StatutTalk, Niveau
 from typing import Annotated, List, Optional
-from datetime import datetime
-from uuid import UUID
+from datetime import datetime,timedelta
 
 router = APIRouter()
 
@@ -16,7 +15,7 @@ async def get_my_talks(current_user: Utilisateur = Depends(get_current_user)):
     Récupère la liste des talks soumis par le conférencier connecté.
     """
     # Vérifie que l'utilisateur est un conférencier
-    if current_user.role.nom_role != "CONFERENCIER":
+    if current_user.id_role != 1: #Conférencier
         raise HTTPException(
             status_code=403,
             detail="Seuls les conférenciers peuvent consulter leurs talks.",
@@ -43,7 +42,7 @@ async def list_talks(
     """
     Liste paginée des talks avec filtres pour les organisateurs uniquement.
     """
-    if current_user.role.nom_role != "ORGANISATEUR":
+    if current_user.id_role != 2: #Organisateur
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Accès réservé aux organisateurs.",
@@ -64,17 +63,52 @@ async def list_talks(
         }
 
     talks = await prisma.talk.find_many(
-        where=filters, skip=skip, take=limit, include={"conferencier": True}
-    )
+    where=filters,
+    skip=skip,
+    take=limit,
+    include={"conferencier": True, "planning": True},
+)
 
-    return talks
+    talks_out = []
+    for talk in talks:
+        date = talk.planning.date_heure.date() if talk.planning else None
+        heure = talk.planning.date_heure.time() if talk.planning else None
+
+        talks_out.append(
+            TalkOut(
+                id_talk=talk.id_talk,
+                titre=talk.titre,
+                sujet=talk.sujet,
+                description=talk.description,
+                duree=talk.duree,
+                niveau=talk.niveau,
+                statut=talk.statut,
+                id_conferencier=talk.id_conferencier,
+                conferencier=talk.conferencier,
+                date=date,
+                heure=heure,
+            )
+        )
+
+    return talks_out
 
 
 @router.post("/", response_model=TalkOut, status_code=status.HTTP_201_CREATED)
 async def create_talk(
     talk: TalkCreate, current_user: Utilisateur = Depends(get_current_user)
 ):
-    ...
+    """
+    Crée un nouveau talk. Seuls les conférenciers peuvent soumettre un talk.
+    """
+
+    # Vérifie si l'utilisateur est un conférencier
+    if current_user.id_role != 1:  # 1 = CONFERENCIER
+        raise HTTPException(
+            status_code=403,
+            detail="Seuls les conférenciers peuvent créer un talk.",
+        )
+
+    # Création du talk
     new_talk = await prisma.talk.create(
         data={
             "titre": talk.titre,
@@ -136,7 +170,7 @@ async def update_talk_status(
     Permet à un organisateur de mettre à jour le statut d'un talk (accepter ou refuser).
     """
     # Vérifie si l'utilisateur est un organisateur
-    if current_user.role.nom_role != "ORGANISATEUR":
+    if current_user.id_role != 2: #Organisateur
         raise HTTPException(
             status_code=403,
             detail="Seuls les organisateurs peuvent gérer les statuts des talks.",
@@ -154,20 +188,19 @@ async def update_talk_status(
 
     return updated_talk
 
-
 @router.patch("/{id}/schedule", response_model=TalkOut)
 async def schedule_talk(
     id: int,
-    salle_id: UUID,
-    date: str,
-    heure: str,
+    id_salle: int = Query(...),
+    date: str = Query(...),
+    heure: str = Query(...),
     current_user: Utilisateur = Depends(get_current_user),
 ):
     """
     Permet à un organisateur d'assigner une salle et un créneau horaire à un talk déjà accepté.
     """
     # Vérifie si l'utilisateur est un organisateur
-    if current_user.role.nom_role != "ORGANISATEUR":
+    if current_user.id_role != 2:
         raise HTTPException(
             status_code=403,
             detail="Seuls les organisateurs peuvent assigner des salles et des créneaux.",
@@ -177,45 +210,81 @@ async def schedule_talk(
     talk = await prisma.talk.find_unique(where={"id_talk": id})
     if not talk:
         raise HTTPException(status_code=404, detail="Talk non trouvé")
-
     if talk.statut != "ACCEPTE":
         raise HTTPException(
             status_code=400,
             detail="Le talk n'est pas accepté, impossible d'assigner une salle.",
         )
 
-    # Convertir la date et l'heure en un datetime pour validation
+    # Convertir date et heure
     try:
         date_heure = datetime.strptime(f"{date} {heure}", "%Y-%m-%d %H:%M")
     except ValueError:
         raise HTTPException(status_code=400, detail="Format de date ou heure invalide")
 
-    # Vérifie si la salle est déjà réservée pour ce créneau
-    conflict = await prisma.talk.find_first(
+    # Vérifie les conflits de planning
+    conflict = await prisma.planning.find_first(
         where={
-            "salle_id": salle_id,
-            "date": date_heure.date(),
-            "heure": date_heure.time(),
+            "id_salle": id_salle,
+            "date_heure": {
+                "gte": datetime.combine(date_heure.date(), datetime.min.time()),
+                "lt": datetime.combine(date_heure.date(), datetime.min.time()) + timedelta(days=1),
+            },
+            "id_talk": {"not": id},
         }
     )
-
     if conflict:
         raise HTTPException(
             status_code=400, detail="La salle est déjà réservée pour ce créneau."
         )
 
-    # Met à jour le talk avec la salle et le créneau horaire
+    # Met à jour le talk
     updated_talk = await prisma.talk.update(
         where={"id_talk": id},
-        data={
-            "salle_id": salle_id,
-            "date": date_heure.date(),
-            "heure": date_heure.time(),
-            "statut": "PLANIFIE",  # Le statut est maintenant "planifié" après l'assignation
-        },
+        data={"statut": "PLANIFIE"},
     )
 
-    return updated_talk
+    # Gère le planning : update s'il existe, sinon create
+    existing_planning = await prisma.planning.find_unique(where={"id_talk": id})
+
+    if existing_planning:
+        await prisma.planning.update(
+            where={"id_talk": id},
+            data={
+                "id_salle": id_salle,
+                "date_heure": date_heure,
+            },
+        )
+    else:
+        await prisma.planning.create(
+            data={
+                "id_talk": id,
+                "id_salle": id_salle,
+                "date_heure": date_heure,
+                "id_organisateur": current_user.id_utilisateur,
+            }
+        )
+
+    # Recharge avec conferencier + planning
+    full_talk = await prisma.talk.find_unique(
+        where={"id_talk": id},
+        include={"conferencier": True, "planning": True},
+    )
+
+    return TalkOut(
+        id_talk=full_talk.id_talk,
+        titre=full_talk.titre,
+        sujet=full_talk.sujet,
+        description=full_talk.description,
+        duree=full_talk.duree,
+        niveau=full_talk.niveau,
+        statut=full_talk.statut,
+        id_conferencier=full_talk.id_conferencier,
+        conferencier=full_talk.conferencier,
+        date=full_talk.planning.date_heure.date() if full_talk.planning else None,
+        heure=full_talk.planning.date_heure.time() if full_talk.planning else None,
+    )
+
 
 
 @router.delete("/{id}", status_code=204)

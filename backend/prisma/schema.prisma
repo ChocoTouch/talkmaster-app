@@ -11,6 +11,7 @@ enum NomRole {
   CONFERENCIER
   ORGANISATEUR
   PUBLIC
+  ADMINISTRATEUR
 }
 
 enum Niveau {

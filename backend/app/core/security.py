@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
@@ -25,7 +25,7 @@ def create_access_token(
     data: dict, expires_delta: timedelta = timedelta(hours=1)
 ) -> str:
     to_encode = data.copy()
-    expire = datetime.now(datetime.timezone.utc) + expires_delta
+    expire = datetime.now().astimezone(timezone.utc)  + expires_delta
     to_encode.update({"exp": expire})
 
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm="HS256")
