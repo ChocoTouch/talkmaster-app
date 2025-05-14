@@ -2,6 +2,9 @@ import PageBreadcrumb from "../../../../components/common/PageBreadCrumb";
 import ComponentCard from "../../../../components/common/ComponentCard";
 import PageMeta from "../../../../components/common/PageMeta";
 import BasicTableOne from "../../../../components/tables/BasicTables/BasicTableOne";
+import BasicTableTwo from "../../../../components/tables/BasicTables/BasicTableTwo";
+import BasicTableFour from "../../../../components/tables/BasicTables/BasicTableFour";
+import BasicTableFive from "../../../../components/tables/BasicTables/BasicTableFive";
 
 export default function BasicTables() {
   return (
@@ -12,8 +15,20 @@ export default function BasicTables() {
       />
       <PageBreadcrumb pageTitle="Basic Tables" />
       <div className="space-y-6">
-        <ComponentCard title="Basic Table 1">
+        <ComponentCard title="Utilisateurs">
           <BasicTableOne />
+        </ComponentCard>
+        <ComponentCard title="Talks">
+          <BasicTableTwo />
+        </ComponentCard>
+        <ComponentCard title="Plannings">
+          <BasicTableTwo />
+        </ComponentCard>
+        <ComponentCard title="Salles">
+          <BasicTableFour />
+        </ComponentCard>
+        <ComponentCard title="Roles">
+          <BasicTableFive />
         </ComponentCard>
       </div>
     </>
