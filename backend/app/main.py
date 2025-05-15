@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.core.config import settings
 from app.core.prisma import prisma
 from app.api.routes import talks, auth, plannings, roles, rooms, users
 
@@ -16,15 +16,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="TalkMaster API", lifespan=lifespan, debug=False)
 
 origins = [
-    "http://localhost:5173",
+    settings.WEBSITE_URL,
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Autorise cette origine
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],  # GET, POST, PUT, DELETE, etc.
-    allow_headers=["*"],  # Autorise tous les headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Routes
