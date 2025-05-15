@@ -42,7 +42,7 @@ async def list_talks(
     """
     Liste paginée des talks avec filtres pour les organisateurs uniquement.
     """
-    if current_user.id_role == 1 | current_user.id_role == 3 : 
+    if current_user.id_role == 1 | current_user.id_role == 3:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Accès réservé aux organisateurs.",
@@ -92,6 +92,7 @@ async def list_talks(
 
     return talks_out
 
+
 @router.get("/{talk_id}", response_model=TalkOut)
 async def get_talk_by_id(
     talk_id: int,
@@ -134,6 +135,7 @@ async def get_talk_by_id(
         date=date,
         heure=heure,
     )
+
 
 @router.post("/", response_model=TalkOut, status_code=status.HTTP_201_CREATED)
 async def create_talk(
@@ -181,7 +183,10 @@ async def update_talk(
         raise HTTPException(status_code=404, detail="Talk non trouvé")
 
     # Vérifie que c'est bien le conférencier propriétaire (ou admin)
-    if current_user.id_role != 4 and talk.id_conferencier != current_user.id_utilisateur:
+    if (
+        current_user.id_role != 4
+        and talk.id_conferencier != current_user.id_utilisateur
+    ):
         raise HTTPException(status_code=403, detail="Accès non autorisé")
 
     # Vérifie que le talk est encore modifiable (ou admin)
@@ -245,6 +250,7 @@ async def update_talk_status(
     )
 
     return updated_talk
+
 
 @router.patch("/{id}/schedule", response_model=TalkOut)
 async def schedule_talk(

@@ -1,8 +1,9 @@
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt,JWTError
+from jose import jwt, JWTError
 from app.core.config import settings
 from app.core.prisma import prisma
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 

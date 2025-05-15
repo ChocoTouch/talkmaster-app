@@ -9,7 +9,6 @@ import RoomsTable from "../../../components/tables/BasicTables/RoomsTable";
 import RolesTable from "../../../components/tables/BasicTables/RolesTable";
 import MyTalksTable from "../../../components/tables/BasicTables/MyTalksTable";
 
-
 export default function BasicTables() {
   const [role, setRole] = useState<number | null>(null);
 
@@ -28,8 +27,8 @@ export default function BasicTables() {
   return (
     <>
       <PageMeta
-        title="TalkMaster Tables | Tableau de bord"
-        description="Ceci est la page des tables du tableau de bord de TalkMaster"
+        title="Tables de données | TalkMaster"
+        description="Accédez aux différentes tables de données : talks, utilisateurs, rôles, salles et plannings."
       />
       <PageBreadcrumb pageTitle="Tables" />
       <div className="space-y-6">

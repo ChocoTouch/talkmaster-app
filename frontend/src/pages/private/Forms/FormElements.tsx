@@ -9,8 +9,8 @@ export default function FormElements() {
   return (
     <div>
       <PageMeta
-        title="TalkMaster Formulaires Talk | Tableau de bord"
-        description="Ceci est la page des formulaires des talks"
+        title="Formulaires Talk | TalkMaster"
+        description="Modifiez ou ajoutez les détails d’un talk : sujet, durée, niveau et planification."
       />
       <PageBreadcrumb pageTitle="Formulaires Talk" />
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">

@@ -23,6 +23,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@headlessui/react": "^2.2.3",
     "@prisma/client": "^6.7.0"
   }
 }

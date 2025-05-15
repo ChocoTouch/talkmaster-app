@@ -23,7 +23,9 @@ interface CalendarEvent extends EventInput {
 
 const Calendar: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
+    null
+  );
 
   // Récupération du rôle
   const [role, setRole] = useState<number | null>(null);
@@ -198,10 +200,9 @@ const Calendar: React.FC = () => {
   return (
     <>
       <PageMeta
-        title="Planning des Talks"
-        description="Vue du planning des talks"
+        title="Calendrier | TalkMaster"
+        description="Consultez et gérez les plannings des talks via une vue calendrier interactive."
       />
-
       <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         <FullCalendar
           ref={calendarRef}
