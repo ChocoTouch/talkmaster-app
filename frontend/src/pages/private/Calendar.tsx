@@ -9,6 +9,9 @@ import { Modal } from "../../../src/components/ui/modal";
 import { useModal } from "../../../src/hooks/useModal";
 import PageMeta from "../../../src/components/common/PageMeta";
 import axiosInstance from "../../../src/utils/axiosInstance";
+import EditPlanning from "../../components/form/form-elements/EditPlanning";
+import { Talk } from "../../types/talks";
+import EditTalk from "../../components/form/form-elements/EditTalk";
 
 interface CalendarEvent extends EventInput {
   extendedProps: {
@@ -224,62 +227,27 @@ const Calendar: React.FC = () => {
       >
         <div className="flex flex-col overflow-y-auto">
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Form Talk - visible uniquement Admin (4) */}
-            {role === 4 ? (
-              <div className="w-full lg:w-1/2">
-                <h5 className="mb-2 font-semibold text-gray-800 dark:text-white/90 lg:text-2xl">
-                  Modifier le Talk
-                </h5>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-                  Modifiez les informations du talk
-                </p>
+            {/* Admin: édition Talk via EditTalk */}
+            {role === 4 && selectedEvent && (
+              <EditTalk
+                talk={
+                  {
+                    titre: eventTitle,
+                    sujet: eventSujet,
+                    description: eventDescription,
+                    duree: eventDuree,
+                    niveau: eventNiveau,
+                    statut: selectedEvent.extendedProps?.statut || "",
+                  } as Talk
+                }
+                initialStatus={selectedEvent.extendedProps?.statut || ""}
+                onClose={closeModal}
+                onStatusUpdate={handleUpdateEvent}
+              />
+            )}
 
-                <div className="space-y-6">
-                  <InputField
-                    label="Titre du Talk"
-                    value={eventTitle}
-                    onChange={setEventTitle}
-                  />
-                  <InputField
-                    label="Sujet"
-                    value={eventSujet}
-                    onChange={setEventSujet}
-                  />
-                  <TextAreaField
-                    label="Description"
-                    value={eventDescription}
-                    onChange={setEventDescription}
-                  />
-                  <NumberField
-                    label="Durée (min)"
-                    value={eventDuree}
-                    onChange={setEventDuree}
-                  />
-                  <SelectField
-                    label="Niveau"
-                    value={eventNiveau}
-                    onChange={setEventNiveau}
-                    options={["DEBUTANT", "INTERMEDIAIRE", "AVANCE"]}
-                  />
-                </div>
-
-                <div className="flex gap-3 mt-6">
-                  <button
-                    onClick={closeModal}
-                    className="flex-1 justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700"
-                  >
-                    Fermer
-                  </button>
-                  <button
-                    onClick={handleUpdateEvent}
-                    className="flex-1 justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white"
-                  >
-                    Mettre à jour Talk
-                  </button>
-                </div>
-              </div>
-            ) : (
-              // Pour les autres roles, affichage lecture seule du talk
+            {/* Non-admins: lecture seule */}
+            {role !== 4 && (
               <div className="w-full lg:w-1/2">
                 <h5 className="mb-2 font-semibold text-gray-800 dark:text-white/90 lg:text-2xl">
                   Informations du Talk
@@ -307,56 +275,18 @@ const Calendar: React.FC = () => {
               </div>
             )}
 
-            {/* Form Planning - visible uniquement Admin (4) et Organisateur (2) */}
+            {/* Edit Planning pour Admin et Organisateur */}
             {(role === 4 || role === 2) && (
-              <div className="w-full lg:w-1/2">
-                <h5 className="mb-2 font-semibold text-gray-800 dark:text-white/90 lg:text-2xl">
-                  Modifier le Planning
-                </h5>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-                  Changez la date, l'heure ou la salle du talk
-                </p>
-
-                {/* Alert Display */}
-                {planningAlert?.show && (
-                  <div className="mb-4">
-                    <Alert
-                      variant={planningAlert.variant}
-                      title={planningAlert.title}
-                      message={planningAlert.message}
-                    />
-                  </div>
-                )}
-
-                <div className="space-y-6">
-                  <InputField
-                    label="Date"
-                    type="date"
-                    value={planningDate}
-                    onChange={setPlanningDate}
-                  />
-                  <InputField
-                    label="Heure"
-                    type="time"
-                    value={planningHeure}
-                    onChange={setPlanningHeure}
-                  />
-                  <NumberField
-                    label="Salle ID"
-                    value={planningSalleId}
-                    onChange={setPlanningSalleId}
-                  />
-                </div>
-
-                <div className="flex mt-6">
-                  <button
-                    onClick={handleUpdatePlanning}
-                    className="w-full justify-center rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white"
-                  >
-                    Modifier le Planning
-                  </button>
-                </div>
-              </div>
+              <EditPlanning
+                planningDate={planningDate}
+                planningHeure={planningHeure}
+                planningSalleId={planningSalleId}
+                setPlanningDate={setPlanningDate}
+                setPlanningHeure={setPlanningHeure}
+                setPlanningSalleId={setPlanningSalleId}
+                onUpdate={handleUpdatePlanning}
+                alert={planningAlert}
+              />
             )}
           </div>
         </div>
@@ -364,68 +294,5 @@ const Calendar: React.FC = () => {
     </>
   );
 };
-
-// Composants internes simples pour les champs (à placer en bas du fichier ou extraire dans un fichier local si besoin)
-
-const InputField = ({ label, value, onChange, type = "text" }: any) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-      {label}
-    </label>
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="h-11 w-full rounded-lg border border-gray-300 dark:bg-dark-900 px-4 py-2.5 text-sm text-gray-800 dark:text-white"
-    />
-  </div>
-);
-
-const TextAreaField = ({ label, value, onChange }: any) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-      {label}
-    </label>
-    <textarea
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-lg border border-gray-300 dark:bg-dark-900 px-4 py-2.5 text-sm text-gray-800 dark:text-white"
-      rows={4}
-    />
-  </div>
-);
-
-const NumberField = ({ label, value, onChange }: any) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-      {label}
-    </label>
-    <input
-      type="number"
-      value={value}
-      onChange={(e) => onChange(Number(e.target.value))}
-      className="h-11 w-full rounded-lg border border-gray-300 dark:bg-dark-900 px-4 py-2.5 text-sm text-gray-800 dark:text-white"
-    />
-  </div>
-);
-
-const SelectField = ({ label, value, onChange, options }: any) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-      {label}
-    </label>
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="h-11 w-full rounded-lg border border-gray-300 dark:bg-dark-900 px-4 py-2.5 text-sm text-gray-800 dark:text-white"
-    >
-      {options.map((opt: string) => (
-        <option key={opt} value={opt}>
-          {opt}
-        </option>
-      ))}
-    </select>
-  </div>
-);
 
 export default Calendar;

@@ -8,17 +8,7 @@ import {
 import Badge from "../../ui/badge/Badge";
 import axiosInstance from "../../../utils/axiosInstance";
 import { useEffect, useState } from "react";
-
-interface Planning {
-  id_planning: number;
-  date: string;
-  heure: string;
-  talk_id: number;
-  talk_titre: string;
-  talk_description: string;
-  talk_statut: string;
-  salle_nom: string;
-}
+import { Planning } from "../../../types/plannings";
 
 export default function PlannigsTable() {
   const [plannings, setPlannings] = useState<Planning[]>([]);

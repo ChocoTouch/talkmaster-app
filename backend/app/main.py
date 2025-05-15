@@ -28,9 +28,7 @@ app.add_middleware(
 )
 
 # Routes
-app.include_router(
-    users.router, prefix="/api/utilisateurs", tags=["Utilisateurs"]
-)
+app.include_router(users.router, prefix="/api/utilisateurs", tags=["Utilisateurs"])
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(talks.router, prefix="/api/talks", tags=["Talks"])
 app.include_router(plannings.router, prefix="/api/plannings", tags=["Plannings"])

@@ -7,15 +7,9 @@ import {
 } from "../../ui/table";
 import axiosInstance from "../../../utils/axiosInstance";
 import { useEffect, useState } from "react";
-
-interface Utilisateur {
-  nom: string;
-  email: string;
-  id_utilisateur: number;
-  id_role: number;
-}
+import { User } from "../../../types/users";
 export default function UsersTable() {
-  const [users, setUsers] = useState<Utilisateur[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -40,7 +34,7 @@ export default function UsersTable() {
                 isHeader
                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
-                Utilisateurs
+                Users
               </TableCell>
             </TableRow>
           </TableHeader>
@@ -48,7 +42,7 @@ export default function UsersTable() {
           {/* Table Body */}
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
             {users.map((user) => (
-              <TableRow key={user.id_utilisateur}>
+              <TableRow key={user.id_user}>
                 <TableCell className="px-5 py-4 sm:px-6 text-start">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 overflow-hidden rounded-full">

@@ -7,19 +7,9 @@ import {
 } from "../../ui/table";
 import axiosInstance from "../../../utils/axiosInstance";
 import { useEffect, useState } from "react";
-
-interface Talk {
-  id_talk: number;
-  titre: string;
-  sujet: string;
-  description: string;
-  duree: number;
-  niveau: "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE";
-  statut: "EN_ATTENTE" | "ACCEPTE" | "REFUSE" | "PLANIFIE";
-  date?: string;
-  heure?: string;
-}
-
+import EditMyTalk from "../../../components/form/form-elements/EditMyTalk";
+import DeleteMyTalk from "../../../components/form/form-elements/DeleteMyTalk";
+import { Talk }from "../../../types/talks"
 export default function MyTalksTable() {
   const [talks, setTalks] = useState<Talk[]>([]);
   const [selectedTalk, setSelectedTalk] = useState<Talk | null>(null);
@@ -131,7 +121,7 @@ export default function MyTalksTable() {
               <TableCell isHeader>Niveau</TableCell>
               <TableCell isHeader>Statut</TableCell>
               <TableCell isHeader>Actions</TableCell>
-              <TableCell isHeader>Supprimer</TableCell> {/* 🧩 COLONNE AJOUTÉE */}
+              <TableCell isHeader>Supprimer</TableCell>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -173,123 +163,26 @@ export default function MyTalksTable() {
 
       {/* MODAL DE MODIFICATION */}
       {selectedTalk && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-lg shadow-xl">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-              Modifier le talk
-            </h3>
-
-            <div className="space-y-4">
-              <input
-                type="text"
-                name="titre"
-                value={formData.titre}
-                onChange={handleChange}
-                placeholder="Titre"
-                className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white"
-              />
-              <input
-                type="text"
-                name="sujet"
-                value={formData.sujet}
-                onChange={handleChange}
-                placeholder="Sujet"
-                className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white"
-              />
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Description"
-                rows={4}
-                className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white"
-              />
-              <input
-                type="number"
-                name="duree"
-                value={formData.duree}
-                onChange={handleChange}
-                placeholder="Durée en minutes"
-                className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white"
-              />
-              <select
-                name="niveau"
-                value={formData.niveau}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white"
-              >
-                <option value="DEBUTANT">Débutant</option>
-                <option value="INTERMEDIAIRE">Intermédiaire</option>
-                <option value="AVANCE">Avancé</option>
-              </select>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white"
-              />
-              <input
-                type="time"
-                name="heure"
-                value={formData.heure}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white"
-              />
-              {errorMessage && (
-                <p className="text-red-600 text-sm">{errorMessage}</p>
-              )}
-            </div>
-
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={handleSubmit}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                Enregistrer
-              </button>
-            </div>
-          </div>
-        </div>
+        <EditMyTalk
+          talk={selectedTalk}
+          formData={formData}
+          onChange={handleChange}
+          onClose={closeModal}
+          onSubmit={handleSubmit}
+          errorMessage={errorMessage}
+        />
       )}
 
       {/* MODALE DE SUPPRESSION */}
       {showDeleteModal && talkToDelete && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Confirmation de suppression
-            </h3>
-            <p className="text-sm text-gray-700 dark:text-gray-300 mb-6">
-              Êtes-vous sûr de vouloir supprimer le talk "
-              <strong>{talkToDelete.titre}</strong>" ? Cette action est
-              irréversible.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setTalkToDelete(null);
-                }}
-                className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-600 hover:bg-gray-100 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={handleDeleteTalk}
-                className="px-4 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-700"
-              >
-                Supprimer
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteMyTalk
+          talk={talkToDelete}
+          onCancel={() => {
+            setShowDeleteModal(false);
+            setTalkToDelete(null);
+          }}
+          onConfirm={handleDeleteTalk}
+        />
       )}
     </div>
   );

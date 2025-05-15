@@ -7,26 +7,21 @@ import {
 } from "../../ui/table";
 import axiosInstance from "../../../utils/axiosInstance";
 import { useEffect, useState } from "react";
+import { Room } from "../../../types/rooms";
 
-interface Salle {
-  id_salle: number;
-  nom_salle: string;
-  capacite: number;
-}
-
-export default function BasicTableFour() {
-  const [salles, setSalles] = useState<Salle[]>([]);
+export default function RoomsTable() {
+  const [rooms, setRooms] = useState<Room[]>([]);
 
   useEffect(() => {
-    const fetchSalles = async () => {
+    const fetchRooms = async () => {
       try {
         const res = await axiosInstance.get("/salles");
-        setSalles(res.data);
+        setRooms(res.data);
       } catch (error) {
-        console.error("Erreur lors du chargement des salles :", error);
+        console.error("Erreur lors du chargement des rooms :", error);
       }
     };
-    fetchSalles();
+    fetchRooms();
   }, []);
 
   return (
@@ -40,7 +35,7 @@ export default function BasicTableFour() {
                 isHeader
                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
-                Nom de la salle
+                Nom de la room
               </TableCell>
               <TableCell
                 isHeader
@@ -53,10 +48,10 @@ export default function BasicTableFour() {
 
           {/* Table Body */}
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {salles.map((salle) => (
-              <TableRow key={salle.id_salle}>
-                <TableCell className="px-5 py-4 text-start">{salle.nom_salle}</TableCell>
-                <TableCell className="px-5 py-4 text-start">{salle.capacite}</TableCell>
+            {rooms.map((room) => (
+              <TableRow key={room.id_salle}>
+                <TableCell className="px-5 py-4 text-start">{room.nom_salle}</TableCell>
+                <TableCell className="px-5 py-4 text-start">{room.capacite}</TableCell>
               </TableRow>
             ))}
           </TableBody>

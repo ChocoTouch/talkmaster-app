@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { HTMLAttributes, ReactNode } from "react";
 
 // Props for Table
 interface TableProps {
@@ -19,11 +19,9 @@ interface TableBodyProps {
 }
 
 // Props for TableRow
-interface TableRowProps {
-  children: ReactNode; // Cells (th or td)
-  className?: string; // Optional className for styling
+interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
+  children: ReactNode;
 }
-
 // Props for TableCell
 interface TableCellProps {
   children: ReactNode; // Cell content
@@ -47,8 +45,8 @@ const TableBody: React.FC<TableBodyProps> = ({ children, className }) => {
 };
 
 // TableRow Component
-const TableRow: React.FC<TableRowProps> = ({ children, className }) => {
-  return <tr className={className}>{children}</tr>;
+const TableRow: React.FC<TableRowProps> = ({ children, className, ...props }) => {
+  return <tr className={className} {...props}>{children}</tr>;
 };
 
 // TableCell Component

@@ -4,3 +4,4 @@ export enum Role {
   ORGANISATEUR = 2,
   ADMIN = 4,
 }
+

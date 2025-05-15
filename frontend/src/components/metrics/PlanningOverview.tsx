@@ -9,21 +9,13 @@ import Badge from "../ui/badge/Badge";
 import axiosInstance from "../../utils/axiosInstance";
 import { useEffect, useState } from "react";
 import { Dialog } from "@headlessui/react";
-
-interface Planning {
-  id_planning: number;
-  date: string;
-  heure: string;
-  talk_id: number;
-  talk_titre: string;
-  talk_description: string;
-  talk_statut: string;
-  salle_nom: string;
-}
+import { Planning } from "../../types/plannings";
 
 export default function PlanningOverview() {
   const [plannings, setPlannings] = useState<Planning[]>([]);
-  const [selectedPlanning, setSelectedPlanning] = useState<Planning | null>(null);
+  const [selectedPlanning, setSelectedPlanning] = useState<Planning | null>(
+    null
+  );
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -64,10 +56,10 @@ export default function PlanningOverview() {
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
               {plannings.map((plan) => (
-                <tr
-  key={plan.id_planning}
-  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-white/[0.05]"
-  onClick={() => openModal(plan)}
+                <TableRow
+                  key={plan.id_planning}
+                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-white/[0.05]"
+                  onClick={() => openModal(plan)}
                 >
                   <TableCell>{plan.talk_titre}</TableCell>
                   <TableCell>
@@ -77,19 +69,18 @@ export default function PlanningOverview() {
                         plan.talk_statut === "ACCEPTE"
                           ? "success"
                           : plan.talk_statut === "EN_ATTENTE"
-                          ? "warning"
-                          : plan.talk_statut === "PLANIFIE"
-                          ? "info"
-                          : "error"
+                            ? "warning"
+                            : plan.talk_statut === "PLANIFIE"
+                              ? "info"
+                              : "error"
                       }
-                    >
-                      {plan.talk_statut}
+                    >{plan.talk_statut}
                     </Badge>
                   </TableCell>
                   <TableCell>{plan.salle_nom}</TableCell>
                   <TableCell>{plan.date}</TableCell>
                   <TableCell>{plan.heure}</TableCell>
-                </tr>
+                </TableRow>
               ))}
             </TableBody>
           </Table>
@@ -106,12 +97,25 @@ export default function PlanningOverview() {
             </Dialog.Title>
             {selectedPlanning && (
               <div className="space-y-2 text-sm">
-                <p><strong>Titre :</strong> {selectedPlanning.talk_titre}</p>
-                <p><strong>Description :</strong> {selectedPlanning.talk_description}</p>
-                <p><strong>Statut :</strong> {selectedPlanning.talk_statut}</p>
-                <p><strong>Salle :</strong> {selectedPlanning.salle_nom}</p>
-                <p><strong>Date :</strong> {selectedPlanning.date}</p>
-                <p><strong>Heure :</strong> {selectedPlanning.heure}</p>
+                <p>
+                  <strong>Titre :</strong> {selectedPlanning.talk_titre}
+                </p>
+                <p>
+                  <strong>Description :</strong>{" "}
+                  {selectedPlanning.talk_description}
+                </p>
+                <p>
+                  <strong>Statut :</strong> {selectedPlanning.talk_statut}
+                </p>
+                <p>
+                  <strong>Salle :</strong> {selectedPlanning.salle_nom}
+                </p>
+                <p>
+                  <strong>Date :</strong> {selectedPlanning.date}
+                </p>
+                <p>
+                  <strong>Heure :</strong> {selectedPlanning.heure}
+                </p>
               </div>
             )}
             <div className="mt-6 flex justify-end">
