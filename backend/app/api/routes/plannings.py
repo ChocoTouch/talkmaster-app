@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from app.deps.auth import get_current_user
+from app.api.deps import get_current_user
 from app.core.prisma import prisma
 from app.models.planning import PlanningOut, PlanningUpdate
 from typing import List, Optional

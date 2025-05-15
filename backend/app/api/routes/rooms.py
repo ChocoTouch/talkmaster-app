@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app.core.prisma import prisma
 from app.models.salle import SalleCreate, SalleOut
-from app.deps.auth import get_current_user
+from app.api.deps import get_current_user
 
 router = APIRouter()
 

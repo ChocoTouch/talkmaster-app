@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Body
 from prisma.models import Utilisateur
-from app.deps.auth import get_current_user
+from app.api.deps import get_current_user
 from app.core.prisma import prisma
 from app.models.talk import TalkCreate, TalkOut, TalkUpdate, StatutTalk, Niveau
 from typing import Annotated, List, Optional
