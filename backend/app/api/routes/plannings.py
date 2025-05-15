@@ -3,41 +3,42 @@ from app.deps.auth import get_current_user
 from app.core.prisma import prisma
 from app.models.planning import PlanningOut, PlanningUpdate
 from typing import List, Optional
-from datetime import date,datetime,time
+from datetime import date, datetime, time
 
 
 router = APIRouter()
 
 
 @router.get("/", response_model=List[PlanningOut])
-async def get_planning(current_user=Depends(get_current_user)):
-    if not current_user:
-        raise HTTPException(status_code=403, detail="Utilisateur non authentifié")
-
+async def get_planning():
     plannings = await prisma.planning.find_many(
         include={
-            "talk": True,     # Récupère tout le talk
-            "salle": True,    # Récupère toute la salle
+            "talk": True,  # Récupère tout le talk
+            "salle": True,  # Récupère toute la salle
         }
     )
 
     if not plannings:
         raise HTTPException(status_code=404, detail="Aucun planning trouvé.")
 
-    # Adapter les données à PlanningOut
+    # Adapter les données à PlanningOut avec les bons formats pour date et heure
     return [
         PlanningOut(
+            id_planning=planning.id_planning,
             talk_id=planning.talk.id_talk,
             talk_titre=planning.talk.titre,
             talk_description=planning.talk.description,
             talk_statut=planning.talk.statut,
             salle_nom=planning.salle.nom_salle,
-            date=planning.date_heure.date(),
-            heure=planning.date_heure.time(),
+            date=planning.date_heure.date().isoformat(),  # Conversion en string au format 'YYYY-MM-DD'
+            heure=planning.date_heure.time().strftime(
+                "%H:%M"
+            ),  # Conversion en string au format 'HH:MM'
             salle_id=planning.id_salle,
         )
         for planning in plannings
     ]
+
 
 @router.put("/{id}", response_model=PlanningOut)
 async def update_planning(
@@ -48,7 +49,7 @@ async def update_planning(
     Vérifie qu'il n'y a pas de conflit de planning (salle ou créneau).
     """
     # Vérification rôle organisateur
-    if current_user.id_role != 1:
+    if current_user.id_role == 1 | current_user.id_role == 3:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Vous devez être un organisateur pour modifier un planning.",
@@ -73,15 +74,12 @@ async def update_planning(
         where={
             "id_salle": planning_update.salle_id,
             "date_heure": date_heure,
-            "NOT": {
-                "id_planning": id
-            }
+            "NOT": {"id_planning": id},
         }
     )
     if conflict:
         raise HTTPException(
-            status_code=400,
-            detail="Ce créneau est déjà occupé pour cette salle."
+            status_code=400, detail="Ce créneau est déjà occupé pour cette salle."
         )
 
     # Mise à jour
@@ -112,6 +110,7 @@ async def update_planning(
         salle_nom=updated_planning.salle.nom_salle,
     )
 
+
 @router.get("/planning", response_model=List[PlanningOut])
 async def get_filtered_planning(
     jour: Optional[date] = Query(None),  # Optionnel, peut être fourni
@@ -134,7 +133,9 @@ async def get_filtered_planning(
     if jour:
         jour = datetime.combine(jour, time.min)  # Combine jour avec minuit (00:00:00)
     else:
-        jour = datetime.combine(datetime.today().date(), time.min)  # Si jour non fourni, utiliser la date d'aujourd'hui
+        jour = datetime.combine(
+            datetime.today().date(), time.min
+        )  # Si jour non fourni, utiliser la date d'aujourd'hui
 
     # Si une heure est fournie, on la combine avec la date spécifiée (jour)
     if heure:
@@ -147,7 +148,9 @@ async def get_filtered_planning(
     else:
         filters["date_heure"] = {
             "gte": jour,  # Plage de date à partir de minuit
-            "lt": jour.replace(hour=23, minute=59, second=59)  # Jusqu'à la fin de la journée (23:59:59)
+            "lt": jour.replace(
+                hour=23, minute=59, second=59
+            ),  # Jusqu'à la fin de la journée (23:59:59)
         }
 
     # Ajouter le filtre sur la salle si fourni
@@ -182,5 +185,5 @@ async def get_filtered_planning(
         }
         for p in plannings
     ]
-    
+
     return filtered_plannings

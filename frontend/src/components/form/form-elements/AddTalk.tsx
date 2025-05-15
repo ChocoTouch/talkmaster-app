@@ -1,17 +1,25 @@
 import { useState } from "react";
 import ComponentCard from "../../common/ComponentCard.tsx";
 import Label from "../Label.tsx";
-import Input from "../input/InputField.tsx";
-import Select from "../Select.tsx";
-import TextArea from "../input/TextArea.tsx"; // Composant pour TextArea (si nécessaire)
-import { EyeCloseIcon, EyeIcon, TimeIcon } from "../../../icons/index.ts";
-import DatePicker from "../date-picker.tsx";
-import Button from "../../ui/button/Button.tsx"; // Si vous avez un bouton personnalisé
-import { toast } from "react-toastify"; // Pour afficher les messages de succès ou d'erreur
-import axiosInstance from "../../../utils/axiosInstance.jsx"; // L'instance Axios pour la requête API
+import axiosInstance from "../../../utils/axiosInstance.jsx";
+
+// Composant Alert simple (à personnaliser selon ton design)
+function Alert({ message, onClose }: { message: string; onClose: () => void }) {
+  return (
+    <div className="mb-4 p-4 text-green-800 bg-green-100 rounded-md relative">
+      {message}
+      <button
+        onClick={onClose}
+        className="absolute top-1 right-2 font-bold text-green-800"
+        aria-label="Close alert"
+      >
+        ×
+      </button>
+    </div>
+  );
+}
 
 export default function AddTalk() {
-  const [showPassword, setShowPassword] = useState(false);
   const [titre, setTitre] = useState("");
   const [sujet, setSujet] = useState("");
   const [description, setDescription] = useState("");
@@ -25,6 +33,8 @@ export default function AddTalk() {
     niveau: "",
   });
 
+  const [successMessage, setSuccessMessage] = useState(""); // <-- état pour l'alerte succès
+
   const optionsSujet = [
     { value: "marketing", label: "Marketing" },
     { value: "development", label: "Development" },
@@ -34,7 +44,6 @@ export default function AddTalk() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation des champs
     const newErrors = {
       titre: titre === "" ? "Le titre est requis" : "",
       sujet: sujet === "" ? "Le sujet est requis" : "",
@@ -44,10 +53,8 @@ export default function AddTalk() {
     };
     setErrors(newErrors);
 
-    // Si aucune erreur, on soumet le formulaire
     if (Object.values(newErrors).every((error) => error === "")) {
       try {
-        // Utilisation d'une instance Axios pour envoyer les données au backend
         const response = await axiosInstance.post(
           "/talks",
           {
@@ -56,7 +63,7 @@ export default function AddTalk() {
             description,
             duree,
             niveau,
-            statut: "EN_ATTENTE", // Statut par défaut lors de la soumission
+            statut: "EN_ATTENTE",
           },
           {
             headers: {
@@ -66,16 +73,34 @@ export default function AddTalk() {
         );
 
         if (response.status === 201) {
-          toast.success("Votre proposition de talk a été soumise avec succès !");
+          setSuccessMessage("Votre proposition de talk a été soumise avec succès !");
+          // Optionnel : reset du formulaire
+          setTitre("");
+          setSujet("");
+          setDescription("");
+          setDuree("");
+          setNiveau("DEBUTANT");
+          setErrors({
+            titre: "",
+            sujet: "",
+            description: "",
+            duree: "",
+            niveau: "",
+          });
         }
       } catch (error) {
-        toast.error("Une erreur est survenue lors de la soumission.");
+        alert("Une erreur est survenue lors de la soumission."); // garde le toast erreur ou remplace ici aussi
       }
     }
   };
 
   return (
     <ComponentCard title="Proposer un Talk">
+      {/* Affichage de l'alerte succès */}
+      {successMessage && (
+        <Alert message={successMessage} onClose={() => setSuccessMessage("")} />
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Titre du talk */}
         <div>
@@ -86,7 +111,7 @@ export default function AddTalk() {
             value={titre}
             onChange={(e) => setTitre(e.target.value)}
             placeholder="Titre du talk"
-            className="input-class" // Ajouter des classes selon vos besoins
+            className="input-class"
           />
           {errors.titre && <p className="text-red-500 text-sm">{errors.titre}</p>}
         </div>
@@ -98,7 +123,7 @@ export default function AddTalk() {
             id="sujet"
             value={sujet}
             onChange={(e) => setSujet(e.target.value)}
-            className="input-class" // Ajouter des classes selon vos besoins
+            className="input-class"
           >
             <option value="">Sélectionner un sujet</option>
             {optionsSujet.map((option) => (
@@ -118,7 +143,7 @@ export default function AddTalk() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Décrivez votre talk"
-            className="textarea-class" // Ajouter des classes selon vos besoins
+            className="textarea-class"
           />
           {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
         </div>
@@ -132,7 +157,7 @@ export default function AddTalk() {
             value={duree}
             onChange={(e) => setDuree(e.target.value)}
             placeholder="Durée du talk (ex : 20 min)"
-            className="input-class" // Ajouter des classes selon vos besoins
+            className="input-class"
           />
           {errors.duree && <p className="text-red-500 text-sm">{errors.duree}</p>}
         </div>
@@ -144,7 +169,7 @@ export default function AddTalk() {
             id="niveau"
             value={niveau}
             onChange={(e) => setNiveau(e.target.value)}
-            className="input-class" // Ajouter des classes selon vos besoins
+            className="input-class"
           >
             <option value="DEBUTANT">Débutant</option>
             <option value="INTERMEDIAIRE">Intermédiaire</option>

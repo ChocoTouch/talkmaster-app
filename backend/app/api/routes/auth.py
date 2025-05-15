@@ -1,3 +1,4 @@
+from app.deps.auth import get_current_user
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
@@ -36,7 +37,9 @@ async def register_user(user: UtilisateurCreate):
 # Endpoint pour se connecter et obtenir un token JWT
 @router.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = await prisma.utilisateur.find_unique(where={"email": form_data.username}) # username non unique
+    user = await prisma.utilisateur.find_unique(
+        where={"email": form_data.username}
+    )  # username non unique
     if not user or not verify_password(form_data.password, user.mot_de_passe):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -47,6 +50,13 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     # Créer un token JWT
     access_token_expires = timedelta(hours=1)  # Expire après 1 heure
     access_token = create_access_token(
-        data={"sub": str(user.id_utilisateur)}, expires_delta=access_token_expires
+        data={"sub": str(user.id_utilisateur)},
+        utilisateur=user,
+        expires_delta=access_token_expires,
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/me", response_model=UtilisateurOut)
+async def read_current_user(current_user = Depends(get_current_user)):
+    return current_user

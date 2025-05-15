@@ -5,6 +5,7 @@ from fastapi.security import OAuth2PasswordBearer
 from app.core.config import settings
 from fastapi import HTTPException, status, Depends
 from prisma import Prisma
+from app.models import utilisateur
 
 # Configurer le contexte pour le hashage des mots de passe
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -20,13 +21,13 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-# Fonction pour créer un token JWT
+# Fonction pour créer un token JWT incluant le rôle
 def create_access_token(
-    data: dict, expires_delta: timedelta = timedelta(hours=1)
+    data: dict, utilisateur: utilisateur, expires_delta: timedelta = timedelta(hours=1)
 ) -> str:
     to_encode = data.copy()
-    expire = datetime.now().astimezone(timezone.utc)  + expires_delta
-    to_encode.update({"exp": expire})
+    expire = datetime.now(timezone.utc) + expires_delta
+    to_encode.update({"exp": expire, "role": utilisateur.id_role})
 
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm="HS256")
     return encoded_jwt
@@ -53,8 +54,10 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
     db = Prisma()
     await db.connect()
-    user = await db.utilisateur.find_unique(where={"id_utilisateur": user_id})
-    await db.disconnect()
+    try:
+        user = await db.utilisateur.find_unique(where={"id_utilisateur": user_id})
+    finally:
+        await db.disconnect()
 
     if user is None:
         raise credentials_exception

@@ -4,6 +4,7 @@ from typing import Optional
 from app.models.utilisateur import UtilisateurOut
 import datetime
 
+
 class Niveau(str, Enum):
     DEBUTANT = "DEBUTANT"
     INTERMEDIAIRE = "INTERMEDIAIRE"

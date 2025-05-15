@@ -1,4 +1,3 @@
-// src/hooks/useAuth.ts
 import { useNavigate } from 'react-router-dom';
 
 export const useAuth = () => {

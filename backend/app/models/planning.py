@@ -14,13 +14,14 @@ class PlanningBase(BaseModel):
 # Modèle de sortie pour afficher un planning
 class PlanningOut(BaseModel):
     id_planning: int
-    date: str  
-    heure: str 
     talk_id: int
     talk_titre: str
     talk_description: str
     talk_statut: str
     salle_nom: str
+    date: str
+    heure: str
+    salle_id: int
 
     class Config:
         from_attributes = True

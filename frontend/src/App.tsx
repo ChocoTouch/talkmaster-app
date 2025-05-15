@@ -1,66 +1,90 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router";
-import SignIn from "./views/private/pages/AuthPages/SignIn";
-import SignUp from "./views/private/pages/AuthPages/SignUp";
-import NotFound from "./views/private/pages/OtherPage/NotFound";
-import UserProfiles from "./views/private/pages/UserProfiles";
-import Videos from "./views/private/pages/UiElements/Videos";
-import Images from "./views/private/pages/UiElements/Images";
-import Alerts from "./views/private/pages/UiElements/Alerts";
-import Badges from "./views/private/pages/UiElements/Badges";
-import Avatars from "./views/private/pages/UiElements/Avatars";
-import Buttons from "./views/private/pages/UiElements/Buttons";
-import LineChart from "./views/private/pages/Charts/LineChart";
-import BarChart from "./views/private/pages/Charts/BarChart";
-import Calendar from "./views/private/pages/Calendar";
-import BasicTables from "./views/private/pages/Tables/BasicTables";
-import FormElements from "./views/private/pages/Forms/FormElements";
-import Blank from "./views/private/pages/Blank";
-import AppLayout from "./layout/AppLayout";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ScrollToTop } from "./components/common/ScrollToTop";
-import Home from "./views/private/pages/Dashboard/Home";
+import AppAdminLayout from "./layout/AppAdminLayout";
+import AppPublicLayout from "./layout/AppPublicLayout";
+import RequireRole from "./components/auth/RequireRole";
+import { Role } from "./types/roles";
+
+// Pages publiques
+import Home from "./pages/public/Home";
+import About from "./pages/public/About";
+
+// Auth
+import SignIn from "./pages/auth/SignIn";
+import SignUp from "./pages/auth/SignUp";
+
+// Pages privées
+import Dashboard from "./pages/private/Dashboard/Home";
+import BasicTables from "./pages/private/Tables/BasicTables";
+import FormElements from "./pages/private/Forms/FormElements";
+import Calendar from "./pages/private/Calendar";
+import Blank from "./pages/private/Blank";
+import NotFound from "./pages/private/OtherPage/NotFound";
 
 export default function App() {
   return (
-    <>
-      <Router>
-        <ScrollToTop />
-        <Routes>
-          {/* Dashboard Layout */}
-          <Route element={<AppLayout />}>
-            <Route index path="/" element={<Home />} />
+    <Router>
+      <ScrollToTop />
+      <Routes>
+        {/* Public layout */}
+        <Route element={<AppPublicLayout />}>
+          <Route index path="/public" element={<Home />} />
+          <Route path="/about" element={<About />} />
+        </Route>
+        {/* Auth */}
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
+        {/* Admin layout - require authenticated roles */}
+        <Route
+          element={
+            <RequireRole
+              allowedRoles={[Role.ADMIN, Role.ORGANISATEUR, Role.CONFERENCIER]}
+            >
+              <AppAdminLayout />
+            </RequireRole>
+          }
+        >
+          {/* Dashboard - Admin uniquement */}
+          <Route
+            index
+            path="/"
+            element={
+              <RequireRole allowedRoles={[Role.ADMIN]}>
+                <Dashboard />
+              </RequireRole>
+            }
+          />
 
-            {/* Others Page */}
-            <Route path="/profile" element={<UserProfiles />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/blank" element={<Blank />} />
+          {/* Basic Tables - Admin et Organisateur */}
+          <Route
+            path="/basic-tables"
+            element={
+              <RequireRole allowedRoles={[Role.ADMIN, Role.ORGANISATEUR, Role.CONFERENCIER]}>
+                <BasicTables />
+              </RequireRole>
+            }
+          />
 
-            {/* Forms */}
-            <Route path="/form-elements" element={<FormElements />} />
+          {/* Form Elements - Admin et Conferencier */}
+          <Route path="/form-elements" element={<FormElements/>}/>
 
-            {/* Tables */}
-            <Route path="/basic-tables" element={<BasicTables />} />
+          {/* Calendar - accessible aux 3 rôles */}
+          <Route path="/calendar" element={<Calendar />} />
 
-            {/* Ui Elements */}
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/avatars" element={<Avatars />} />
-            <Route path="/badge" element={<Badges />} />
-            <Route path="/buttons" element={<Buttons />} />
-            <Route path="/images" element={<Images />} />
-            <Route path="/videos" element={<Videos />} />
+          {/* Blank page - Admin uniquement */}
+          <Route
+            path="/blank"
+            element={
+              <RequireRole allowedRoles={[Role.ADMIN]}>
+                <Blank />
+              </RequireRole>
+            }
+          />
+        </Route>
 
-            {/* Charts */}
-            <Route path="/line-chart" element={<LineChart />} />
-            <Route path="/bar-chart" element={<BarChart />} />
-          </Route>
-
-          {/* Auth Layout */}
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-
-          {/* Fallback Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
-    </>
+        {/* Fallback */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Router>
   );
 }

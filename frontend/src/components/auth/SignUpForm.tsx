@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
@@ -8,13 +8,27 @@ import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 
 export default function SignUpForm() {
-  const [nom, setNom] = useState(""); // remplace fname + lname si besoin
+  const [nom, setNom] = useState(""); 
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [idRole, setIdRole] = useState(""); 
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [role, setRole] = useState<number | null>(null); // <-- nouveau state role
   const navigate = useNavigate();
+
+  // Décoder le token à la monture pour récupérer le rôle
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        setRole(payload.role);
+      } catch {
+        setRole(null);
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,15 +50,20 @@ export default function SignUpForm() {
 
   return (
     <div className="flex flex-col flex-1 w-full overflow-y-auto lg:w-1/2 no-scrollbar">
-      <div className="w-full max-w-md mx-auto mb-5 sm:pt-10">
-        <Link
-          to="/"
-          className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-        >
-          <ChevronLeftIcon className="size-5" />
-          Back to dashboard
-        </Link>
-      </div>
+
+      {/* Affichage conditionnel du lien seulement si rôle admin */}
+      {(role === 4) && (
+        <div className="w-full max-w-md pt-10 mx-auto">
+          <Link
+            to="/"
+            className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+          >
+            <ChevronLeftIcon className="size-5" />
+            Back to dashboard
+          </Link>
+        </div>
+      )}
+
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-8">
@@ -58,7 +77,7 @@ export default function SignUpForm() {
           <div>
             <form onSubmit={handleSubmit}>
               <div className="space-y-5">
-                {/* <!-- Nom --> */}
+                {/* Nom */}
                 <div>
                   <Label>
                     Nom<span className="text-error-500">*</span>
@@ -72,7 +91,7 @@ export default function SignUpForm() {
                     onChange={(e) => setNom(e.target.value)}
                   />
                 </div>
-                {/* <!-- Email --> */}
+                {/* Email */}
                 <div>
                   <Label>
                     Email<span className="text-error-500">*</span>
@@ -86,7 +105,7 @@ export default function SignUpForm() {
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-                {/* <!-- Password --> */}
+                {/* Password */}
                 <div>
                   <Label>
                     Password<span className="text-error-500">*</span>
@@ -130,9 +149,8 @@ export default function SignUpForm() {
                     <option value={2}>Organisateur</option>
                     <option value={3}>Public</option>
                   </select>
-
                 </div>
-                {/* <!-- Checkbox --> */}
+                {/* Checkbox */}
                 <div className="flex items-center gap-3">
                   <Checkbox
                     className="w-5 h-5"
@@ -150,9 +168,12 @@ export default function SignUpForm() {
                     </span>
                   </p>
                 </div>
-                {/* <!-- Button --> */}
+                {/* Button */}
                 <div>
-                  <button type="submit" className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
+                  <button
+                    type="submit"
+                    className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
+                  >
                     Sign Up
                   </button>
                 </div>
@@ -161,7 +182,7 @@ export default function SignUpForm() {
 
             <div className="mt-5">
               <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
-                Already have an account? {""}
+                Already have an account?{" "}
                 <Link
                   to="/signin"
                   className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
