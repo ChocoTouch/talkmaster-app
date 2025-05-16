@@ -1,4 +1,3 @@
-// components/EditMyTalk.tsx
 import React from "react";
 import { Talk } from "../../../types/talks";
 

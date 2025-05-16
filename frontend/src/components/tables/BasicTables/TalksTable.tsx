@@ -7,7 +7,7 @@ import {
 } from "../../ui/table";
 import Badge from "../../ui/badge/Badge";
 import axiosInstance from "../../../utils/axiosInstance";
-import EditTalk from "../../form/form-elements/EditTalk";
+import EditTalkStatus from "../../form/form-elements/EditTalkStatus";
 import ScheduleTalk from "../../form/form-elements/ScheduleTalk";
 import { useEffect, useState } from "react";
 import { Talk } from "../../../types/talks";
@@ -37,7 +37,7 @@ export default function TalksTable() {
 
   const fetchRooms = async () => {
     try {
-      const res = await axiosInstance.get("/rooms");
+      const res = await axiosInstance.get("/salles");
       setRooms(res.data);
     } catch (error) {
       console.error("Erreur lors du chargement des rooms :", error);
@@ -275,29 +275,39 @@ export default function TalksTable() {
 
       {/* Modal pour modification de statut */}
       {selectedTalk && !showScheduleModal && (
-        <EditTalk
-          talk={selectedTalk}
-          initialStatus={newStatus}
-          onClose={closeModal}
-          onStatusUpdate={async (status: string) => {
-            await axiosInstance.patch(`/talks/${selectedTalk.id_talk}/status`, {
-              status,
-            });
-            await fetchTalks();
-            closeModal();
+        <EditTalkStatus
+          statut={newStatus}
+          onChange={(e) => setNewStatus(e.target.value)}
+          onSubmit={async () => {
+            try {
+              await axiosInstance.patch(
+                `/talks/${selectedTalk.id_talk}/status`,
+                {
+                  status: newStatus,
+                }
+              );
+              await fetchTalks();
+              closeModal();
+            } catch (error) {
+              // gérer l'erreur si besoin
+              console.error(error);
+            }
           }}
+          onClose={closeModal}
         />
       )}
       {/* Modal Planification */}
-      {showScheduleModal && selectedTalk && (
-        <ScheduleTalk
-          rooms={rooms}
-          onClose={closeScheduleModal}
-          onSubmit={handleScheduleSubmit}
-          errorMessage={errorMessage}
-          setErrorMessage={setErrorMessage}
-        />
-      )}
+{showScheduleModal && selectedTalk && (
+  <ScheduleTalk
+    rooms={rooms}
+    selectedTalk={selectedTalk}   // <-- passer la talk ici
+    onClose={closeScheduleModal}
+    onSubmit={handleScheduleSubmit}
+    errorMessage={errorMessage}
+    setErrorMessage={setErrorMessage}
+  />
+)}
+
     </div>
   );
 }

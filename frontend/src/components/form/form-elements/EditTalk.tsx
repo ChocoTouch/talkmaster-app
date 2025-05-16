@@ -1,86 +1,146 @@
-import { useState, useEffect } from "react";
-import { useTalkStore } from "../../../store/talkStore";
-import { Talk } from "../../../types/talks";
+import React from "react";
+import Alert from "../../../components/ui/alert/Alert";
+
 interface EditTalkProps {
-  talk: Talk;
-  initialStatus: string;
-  onClose: () => void;
-  onStatusUpdate: (newStatus: string) => Promise<void>;
+  titre: string;
+  sujet: string;
+  description: string;
+  duree: number;
+  niveau: "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE";
+  onChangeTitre: (value: string) => void;
+  onChangeSujet: (value: string) => void;
+  onChangeDescription: (value: string) => void;
+  onChangeDuree: (value: number) => void;
+  onChangeNiveau: (value: "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE") => void;
+  onUpdate: () => void;
+  alert: {
+    show: boolean;
+    variant: "success" | "error";
+    title: string;
+    message: string;
+  } | null;
 }
 
-export default function EditTalk({ onClose, onStatusUpdate }: EditTalkProps) {
-  const { selectedTalk, updateTalkField } = useTalkStore();
-  const [errorMessage, setErrorMessage] = useState("");
-
-  useEffect(() => {
-    if (selectedTalk) {
-      updateTalkField("statut", selectedTalk.statut);
-    }
-  }, [selectedTalk]);
-
-  if (!selectedTalk) return null;
-
-  const handleSave = async () => {
-    setErrorMessage("");
-    try {
-      await onStatusUpdate(selectedTalk.statut);
-    } catch (error: any) {
-      const status = error?.response?.status;
-      if (status === 404) {
-        setErrorMessage("Le talk n'a pas été trouvé.");
-      } else if (status === 403) {
-        setErrorMessage("Vous n'avez pas les droits pour modifier ce talk.");
-      } else if (status === 400) {
-        setErrorMessage("Le talk ne peut plus être modifié.");
-      } else {
-        setErrorMessage("Une erreur inattendue est survenue.");
-      }
-    }
-  };
-
+export default function EditTalk({
+  titre,
+  sujet,
+  description,
+  duree,
+  niveau,
+  onChangeTitre,
+  onChangeSujet,
+  onChangeDescription,
+  onChangeDuree,
+  onChangeNiveau,
+  onUpdate,
+  alert,
+}: EditTalkProps) {
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-xl">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Modifier le statut du talk
-        </h3>
-        <p className="text-sm mb-2 text-gray-700 dark:text-gray-300">
-          <strong>Titre :</strong> {selectedTalk.titre}
-        </p>
+    <div className="w-full lg:w-1/2">
+      <h5 className="mb-2 font-semibold text-gray-800 dark:text-white/90 lg:text-2xl">
+        Modifier les informations du Talk
+      </h5>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+        Changez le titre, la description, la durée ou le niveau du talk
+      </p>
 
-        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-          Nouveau statut :
-        </label>
-        <select
-          className="w-full border px-3 py-2 rounded-md text-sm dark:bg-gray-700 dark:text-white"
-          value={selectedTalk.statut}
-          onChange={(e) => updateTalkField("statut", e.target.value)}
-        >
-          <option value="EN_ATTENTE">En attente</option>
-          <option value="ACCEPTE">Accepté</option>
-          <option value="REFUSE">Refusé</option>
-          <option value="PLANIFIE">Planifié</option>
-        </select>
-
-        {errorMessage && (
-          <p className="text-sm text-red-600 mt-4">{errorMessage}</p>
-        )}
-
-        <div className="mt-6 flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-600 hover:bg-gray-100 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700"
-          >
-            Annuler
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700"
-          >
-            Sauvegarder
-          </button>
+      {alert?.show && (
+        <div className="mb-4">
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            message={alert.message}
+          />
         </div>
+      )}
+
+      <div className="space-y-6">
+        <InputField label="Titre" value={titre} onChange={onChangeTitre} />
+        <InputField label="Sujet" value={sujet} onChange={onChangeSujet} />
+        <TextAreaField
+          label="Description"
+          value={description}
+          onChange={onChangeDescription}
+        />
+        <NumberField label="Durée (minutes)" value={duree} onChange={onChangeDuree} />
+        <SelectField
+          label="Niveau"
+          value={niveau}
+          onChange={onChangeNiveau}
+          options={["DEBUTANT", "INTERMEDIAIRE", "AVANCE"]}
+        />
+      </div>
+
+      <div className="flex mt-6">
+        <button
+          onClick={onUpdate}
+          className="w-full justify-center rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white"
+        >
+          Enregistrer les modifications
+        </button>
       </div>
     </div>
   );
 }
+
+// --- Champs réutilisables (comme dans EditPlanning) ---
+const InputField = ({ label, value, onChange, type = "text" }: any) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+      {label}
+    </label>
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="h-11 w-full rounded-lg border border-gray-300 dark:bg-dark-900 px-4 py-2.5 text-sm text-gray-800 dark:text-white"
+    />
+  </div>
+);
+
+const TextAreaField = ({ label, value, onChange }: any) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+      {label}
+    </label>
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full rounded-lg border border-gray-300 dark:bg-dark-900 px-4 py-2.5 text-sm text-gray-800 dark:text-white"
+      rows={4}
+    />
+  </div>
+);
+
+const NumberField = ({ label, value, onChange }: any) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+      {label}
+    </label>
+    <input
+      type="number"
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      className="h-11 w-full rounded-lg border border-gray-300 dark:bg-dark-900 px-4 py-2.5 text-sm text-gray-800 dark:text-white"
+    />
+  </div>
+);
+
+const SelectField = ({ label, value, onChange, options }: any) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+      {label}
+    </label>
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="h-11 w-full rounded-lg border border-gray-300 dark:bg-dark-900 px-4 py-2.5 text-sm text-gray-800 dark:text-white"
+    >
+      {options.map((opt: string) => (
+        <option key={opt} value={opt}>
+          {opt}
+        </option>
+      ))}
+    </select>
+  </div>
+);

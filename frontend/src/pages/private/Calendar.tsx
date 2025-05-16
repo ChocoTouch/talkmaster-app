@@ -38,7 +38,12 @@ const Calendar: React.FC = () => {
   const [eventSujet, setEventSujet] = useState("");
   const [eventDescription, setEventDescription] = useState("");
   const [eventDuree, setEventDuree] = useState(30);
-  const [eventNiveau, setEventNiveau] = useState("DEBUTANT");
+  const [eventNiveau, setEventNiveau] = useState<
+    "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE"
+  >("DEBUTANT");
+  const [eventStatut, setEventStatut] = useState<
+    "EN_ATTENTE" | "ACCEPTE" | "REFUSE" | "PLANIFIE"
+  >("EN_ATTENTE");
 
   // Planning Fields
   const [planningDate, setPlanningDate] = useState("");
@@ -228,21 +233,25 @@ const Calendar: React.FC = () => {
         <div className="flex flex-col overflow-y-auto">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Admin: édition Talk via EditTalk */}
-            {role === 4 && selectedEvent && (
+            {role === 4 && (
               <EditTalk
-                talk={
-                  {
-                    titre: eventTitle,
-                    sujet: eventSujet,
-                    description: eventDescription,
-                    duree: eventDuree,
-                    niveau: eventNiveau,
-                    statut: selectedEvent.extendedProps?.statut || "",
-                  } as Talk
+                titre={eventTitle}
+                sujet={eventSujet}
+                description={eventDescription}
+                duree={eventDuree}
+                niveau={eventNiveau as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE"}
+                onChangeTitre={setEventTitle}
+                onChangeSujet={setEventSujet}
+                onChangeDescription={setEventDescription}
+                onChangeDuree={setEventDuree}
+                onChangeNiveau={(val) =>
+                  setEventNiveau(val as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE")
                 }
-                initialStatus={selectedEvent.extendedProps?.statut || ""}
-                onClose={closeModal}
-                onStatusUpdate={handleUpdateEvent}
+                onUpdate={() => {
+                  // Ici, tu peux appeler ta fonction d'envoi ou juste faire un console.log pour tester
+                  console.log("Update Talk clicked");
+                }}
+                alert={null} // pas d'alerte pour l'instant
               />
             )}
 

@@ -11,4 +11,5 @@ class Settings:
     SECRET_KEY: str = os.getenv("SECRET_KEY")
     WEBSITE_URL: str = os.getenv("WEBSITE_URL")
 
+
 settings = Settings()
